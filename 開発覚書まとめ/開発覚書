@@ -1,7 +1,7 @@
 1.技術構成
 フロント : TypeScript + Nextjs(React)
 バック : Golang
-他 : Docker, firebase(firestore)
+他 : Docker, firebase(firestore), github
 
 上記をDockerイメージ化し、ついでにホットリロード（リアルタイム変更&反映）できるようAirを導入。
 
