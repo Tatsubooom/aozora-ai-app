@@ -1,0 +1,18 @@
+1.技術構成
+フロント : TypeScript + Nextjs(React)
+バック : Golang
+他 : Docker, firebase(firestore)
+
+上記をDockerイメージ化し、ついでにホットリロード（リアルタイム変更&反映）できるようAirを導入。
+
+
+2.開発
+環境構築後、http://localhost:3000とhttp://localhost:8080/api/testにアクセスすると、Next.jsの初期ページとHelloworldを出力するGoの簡易なAPI挙動を確認できる。
+
+
+参考
+DoclerのAir実装について
+https://zenn.dev/ring_belle/articles/go-docker-air-local
+
+GoのRestAPI実装について
+https://qiita.com/urabexon/items/f99c104127d0134f72bf
