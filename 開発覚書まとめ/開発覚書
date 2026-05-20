@@ -1,6 +1,6 @@
 1.技術構成
 フロント : TypeScript + Nextjs(React)
-バック : Golang
+バック : Golang + Gin
 他 : Docker, firebase(firestore), github
 
 上記をDockerイメージ化し、ついでにホットリロード（リアルタイム変更&反映）できるようAirを導入。
@@ -9,6 +9,105 @@
 2.開発
 環境構築後、http://localhost:3000とhttp://localhost:8080/api/testにアクセスすると、Next.jsの初期ページとHelloworldを出力するGoの簡易なAPI挙動を確認できる。
 
+Golang + ReactでWeb設計する際は、Go側でRestAPIを実装、React側からそのAPIを叩くという方式らしい
+→その時、バックとフロントでポートが違うからそれを通すためにCORSという技術を使うっぽい
+
+とりあえずボタンを押すとテストテキストが表示されるようにするぞ
+→バックにos.readfileを設定。それをフロントから呼ぶだけ。
+
+フロント側の体裁を整える。ダーク・ライトモードの基礎配色をglobal.cssに定義。API呼び出し仮ボタンと小説の表示部分、クリックイベントを作成。
+また、CSSの整備を行い画面を整える。フロントはよくわからんのでAIに丸投げ、軽微な修正は私が詰めて進める。
+
+小休止がてらGo(gin)のメソッドについて勉強。GETとかPOSTのメソッド使い分けが分からないので、Geminiに聞く。曰く、
+    「なぜ GET で DELETE処理 を書いてはいけないのか？
+    理由1: Googleなどの「クローラー（ロボット）」がデータを全消ししていくから
+    Googleの検索エンジン（クローラーbot）や、ブラウザの先読み機能などは、「あ、リンク（URL）がある！」と見つけると、そのURLに対して自動でGETリクエストを送りまくります。
+
+    もしあなたが、「このURLにアクセス（GET）したら、退会処理をする」というAPIを r.GET("/api/user/delete") のように作ってしまったとします。
+
+    悲劇のシナリオ:
+
+    サイトのどこかに <a href="/api/user/delete">退会する</a> というリンクを置く。
+
+    Googleのロボットがサイトを巡回しに来る。
+
+    ロボットは「お、リンクがあるぞ。とりあえず中身を見てみよう（GET）」とアクセスする。
+
+    結果、ユーザー本人が何もしていないのに、ロボットのアクセスによってユーザーデータが消滅（退会）する。
+
+    GETメソッドは「安全（データを変更しない）」という前提で世界中のシステムが動いているため、GETでデータを変更・削除するとロボットの自動巡回でシステムが破壊されます。
+
+    理由2: ブラウザの「リロード」で事故が起きるから
+    ブラウザでWebページを見ている時、F5キーで「リロード（再読み込み）」をすることがありますよね。
+    実は、ブラウザはGETリクエストなら何も聞かずに再送信しますが、POSTやDELETEリクエストの場合は「もう一度送信してもいいですか？」と警告（アラート）を出してくれます。
+
+    もし「決済処理」をGETで作ってしまった場合：
+    ユーザーが決済完了画面でうっかりリロード（F5）を押すと、警告なしで再度GET通信が走り、クレジットカードから二重にお金が引き落とされてしまいます。
+
+    まとめ：メソッドのルールは「安全装置」
+    技術的には、Ginの中で r.GET() を使ってデータベースの削除処理を書くことは普通にできてしまいます（エラーにもなりません）。
+
+    しかし、「GETは絶対にデータを壊さない」という世界共通の約束（プロトコル）を守らないと、ブラウザや検索エンジンといった外部のシステムと連携した瞬間に事故が起きます。
+
+    GET: 「何回アクセスされても安全（冪等性：べきとうせい と呼びます）」な処理専用。
+
+    POST / PUT / DELETE: 「データが変わる危険な操作」であることを明示し、不用意なアクセスを防ぐためのメソッド。
+
+    このルール（REST）を理解してAPIを設計できるのが、一人前のサーバーサイドエンジニアの条件です。
+
+    さて、メソッドの概念がスッキリしたところで、実際に現在のアプリに「しおり機能（読んだ位置の保存）」を追加するなら、Go側のGinでどのように実装（ルーティング）を書き始めるか、イメージは湧きますか？」
+
+だそうだ。ほえー
+
+AI解説のAPIを作りたいんだけどこれは上記ならPOSTか？あとフロントからのAPI呼び出しをチェックしてなかったからよく見てみよう。
+まずは本文取得処理。
+    「//　本文取得
+    const fetchNovel = async () => {
+        try {
+        const res = await fetch('http://localhost:8080/api/novel');
+        const data = await res.json();
+        if (res.ok) {
+            setNovelText(data.message);
+            setIsNovelLoaded(true);
+            setNovelError('');
+        } else {
+            setNovelError('エラー: ' + data.error);
+        }
+        } catch (error) {
+        setNovelError('通信失敗');
+        }
+    };」
+
+次にAI呼び出し処理
+    「//　AI解説API呼び出し処理
+    const handleExplainClick = async () => {
+        setShowButton(false);
+        setIsLoading(true);
+        setExplanation('');
+        try {
+        const res = await fetch('http://localhost:8080/api/explanation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: selectedText }),
+        });
+        const data = await res.json();
+        if (res.ok) setExplanation(data.message);
+        else setExplanation('エラー: ' + data.error);
+        } catch (error) {
+        setExplanation('AI通信エラー');
+        } finally {
+        setIsLoading(false);
+        }
+    };」
+
+これURLハードコーディングしてるな...。環境ファイル用意して、
+NEXT_PUBLIC_API_URL=http://localhost:8080として設定。これにより元の'http://localhost:8080/api/explanation'を`${process.env.NEXT_PUBLIC_API_URL}/api/novel`に変更。
+これで、実際にデプロイする際は環境変数変えればいいだけになる。
+あとは、Goサーバに渡すデータの構文かな。AI曰く
+    「body には生データをそのまま書けない。JSON.stringify({ ... }) で文字列に変換する構文が基本。
+    データが増えたら { a: 1, b: 2 } のようにカンマで増やしていけばOK。
+    JSONを送る時は、必ず headers: { 'Content-Type': 'application/json' } というラベルとセットにする」
+だそうだ。ここはもうおまじないとして理解かな
 
 参考
 DoclerのAir実装について
@@ -16,3 +115,13 @@ https://zenn.dev/ring_belle/articles/go-docker-air-local
 
 GoのRestAPI実装について
 https://qiita.com/urabexon/items/f99c104127d0134f72bf
+
+GoのGeminiAPI利用について
+https://qiita.com/mooooroi/items/8ca9872d5d22ea5f27e7
+https://ai.google.dev/gemini-api/docs/quickstart?lang=go&hl=ja#set-up-api-key
+
+Goの関数宣言&呼び出しについて
+https://recursionist.io/learn/languages/go/function/function
+
+カラーピッカー
+https://colormind.io/bootstrap/
