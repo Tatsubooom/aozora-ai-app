@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS dev
+FROM golang:1.25-alpine AS dev
     WORKDIR /app
     RUN go install github.com/air-verse/air@v1.52.3
     COPY go.mod go.sum* ./
