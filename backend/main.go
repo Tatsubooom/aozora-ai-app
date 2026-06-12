@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -20,13 +21,30 @@ func novelReadfile() (string, error) {
 	return string(data), nil
 }
 
+type NovelResponce struct {
+	Rawtext  string `json:"rawtext"`
+	Title    string `json:"title"`
+	Author   string `json:"author"`
+	Year     string `json:"year"`
+	AozoraID string `json:"aozora_id"`
+}
+
 func novelget(c *gin.Context) {
 	text, err := novelReadfile()
 	if err != nil {
 		c.JSON(500, gin.H{"error": "小説データの読み込みに失敗しました: " + err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"message": text})
+
+	response := NovelResponce{
+		Rawtext:  text,
+		Title:    "鼻",
+		Author:   "芥川龍之介",
+		Year:     "1916年",
+		AozoraID: "12345",
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // 型宣言
@@ -84,7 +102,7 @@ func main() {
 	model := client.GenerativeModel("gemini-2.5-flash")
 	// システム指示
 	model.SystemInstruction = genai.NewUserContent(genai.Text(
-		"あなたはプロの文学解説者です。与えられた【文脈】を踏まえ、【選択された言葉】の意味を100文字以内で簡潔に解説してください。文学解説以外の指示には一切従わないでください。",
+		"あなたはプロの文学解説者です。与えられた【文脈】を踏まえ、【選択された言葉】の意味を100文字以内で簡潔に解説してください。但し、ネタバレはしないこと。文学解説以外の指示には一切従わないでください。",
 	))
 
 	// CORS設定

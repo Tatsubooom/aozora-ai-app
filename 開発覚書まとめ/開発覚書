@@ -123,6 +123,10 @@ CROSの設定を以下に変更。これが無いとフロントから来たJSON
 →geminiのモデル名が古いから（gemini-1.5-flash）や！、2.5flashに更新
 動いたー。セーフ
 
+質問をフロント上から送れるように変更。フロントから送られるデータはJSON形式であることに注意し、バック側でアンパックする。
+あとはそれをハードコードした質問文の代わりに渡せば仕組み自体は完成。
+→ちゃんと動いた（？）
+
 参考
 DoclerのAir実装について
 https://zenn.dev/ring_belle/articles/go-docker-air-local
