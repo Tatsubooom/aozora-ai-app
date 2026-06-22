@@ -81,7 +81,12 @@ func explpost(c *gin.Context, model *genai.GenerativeModel) {
 	}
 }
 
+// 立ち上げ時処理
 func main() {
+	// DB立ち上げ
+	initDB()
+	defer db.Close()
+
 	// gin の立ち上げ
 	r := gin.Default()
 	r.SetTrustedProxies(nil)
@@ -93,6 +98,7 @@ func main() {
 		log.Fatal("サーバーの環境変数 GEMINI_API_KEY が設定されていません")
 	}
 
+	// クライアントモデル設定
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
 		log.Fatalf("クライアントの生成に失敗しました: %v", err)
@@ -100,7 +106,6 @@ func main() {
 	defer client.Close()
 
 	model := client.GenerativeModel("gemini-2.5-flash")
-	// システム指示
 	model.SystemInstruction = genai.NewUserContent(genai.Text(
 		"あなたはプロの文学解説者です。与えられた【文脈】を踏まえ、【選択された言葉】の意味を100文字以内で簡潔に解説してください。但し、ネタバレはしないこと。文学解説以外の指示には一切従わないでください。",
 	))
@@ -113,11 +118,12 @@ func main() {
 		AllowHeaders: []string{"Origin", "Content-Type", "Accept"},
 	}))
 
-	//小説本文呼びだし
+	//　小説本文呼びだし
 	r.GET("/api/novel", novelget)
-	//AIコール
+	//　AI解説
 	r.POST("/api/explanation", func(c *gin.Context) {
 		explpost(c, model)
 	})
+
 	r.Run(":8080")
 }

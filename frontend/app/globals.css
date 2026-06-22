@@ -1,0 +1,57 @@
+/* --- src/app/globals.css --- */
+
+/* カラーパレットの定義 */
+:root {
+  --background: #F6F7F9;
+  --foreground: #261E33;
+}
+html.dark {
+  --background: #1F3150;
+  --foreground: #f5f5f5;
+}
+
+/* ★追加：ブラウザのデフォルト余白を消し、大元から色を適用する */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* トグルスイッチのUI部品 */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #00acc1;
+}
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
