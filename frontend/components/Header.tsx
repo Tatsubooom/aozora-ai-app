@@ -1,6 +1,9 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
-// 親から受け取るデータの型定義
 type HeaderProps = {
   theme: string;
   toggleTheme: () => void;
@@ -16,98 +19,37 @@ export const Header = ({
   isSettingsOpen,
   setIsSettingsOpen,
   showHeader,
-  fetchNovel
+  fetchNovel,
 }: HeaderProps) => {
-    return (
-        <header style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0, height: '64px',
-        backgroundColor: 'var(--background)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: '2px solid rgba(128, 128, 128, 0.3)',
-        padding: '0 20px',
-        zIndex: 1001,
-        transform: showHeader ? 'translateY(0)' : 'translateY(-100%)',
-        transition: 'transform 0.3s ease-in-out, opacity 0.3s, background-color 0.3s',
-        opacity: showHeader ? 1 : 0,
-      }}>
-        <h3 style={{ margin: 0, fontSize: '18px' }}>青空文庫 AI解説リーダー</h3>
-        
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              style={{
-                padding: '8px 16px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                border: '1px solid rgba(128, 128, 128, 0.5)',
-                backgroundColor: 'transparent',
-                color: 'var(--foreground)',
-                position: 'relative',
-                zIndex: 2
-              }}
-            >
-              設定
-            </button>
+  return (
+    <header
+      className={cn(
+        'fixed top-0 left-0 right-0 z-[1001] flex h-16 items-center justify-between border-b-2 border-border/30 bg-background px-5 transition-[transform,opacity] duration-300 ease-in-out',
+        showHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+      )}
+    >
+      <h3 className="m-0 text-lg">青空文庫 AI解説リーダー</h3>
 
-            {isSettingsOpen && (
-              <div 
-                onMouseLeave={() => setIsSettingsOpen(false)}
-                style={{
-                  position: 'absolute',
-                  top: '-40px', right: '-40px', padding: '30px', zIndex: 2002,
-                }}
-              >
-                <div style={{
-                  backgroundColor: 'var(--background)',
-                  padding: '20px',
-                  borderRadius: '8px',
-                  minWidth: '240px',
-                  border: '1px solid rgba(128, 128, 128, 0.3)',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-                }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid rgba(128, 128, 128, 0.3)', paddingBottom: '8px' }}>
-                      設定メニュー
-                    </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px' }}>表示モード</span>
-                      <label className="toggle-switch">
-                        <input 
-                          type="checkbox" 
-                          checked={theme === 'dark'}
-                          onChange={toggleTheme}
-                        />
-                        <span className="slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+      <div className="flex items-center gap-2">
+        <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm">設定</Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-60">
+            <div className="flex flex-col gap-5">
+              <div className="border-b pb-2 text-sm font-bold">設定メニュー</div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">表示モード</span>
+                <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
               </div>
-            )}
-          </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-          <button 
-            onClick={fetchNovel} 
-            style={{ 
-              padding: '8px 16px', 
-              fontSize: '14px', 
-              cursor: 'pointer', 
-              borderRadius: '4px',
-              border: '1px solid rgba(128, 128, 128, 0.5)',
-              backgroundColor: 'transparent',
-              color: 'var(--foreground)',
-            }}
-          >
-            小説を読み込む
-          </button>
-        </div>
-      </header>
-    );
+        <Button variant="outline" size="sm" onClick={fetchNovel}>
+          小説を読み込む
+        </Button>
+      </div>
+    </header>
+  );
 };

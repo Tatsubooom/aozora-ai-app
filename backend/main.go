@@ -83,9 +83,6 @@ func explpost(c *gin.Context, model *genai.GenerativeModel) {
 
 // 立ち上げ時処理
 func main() {
-	// DB立ち上げ
-	initDB()
-	defer db.Close()
 
 	// gin の立ち上げ
 	r := gin.Default()

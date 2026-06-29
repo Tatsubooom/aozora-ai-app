@@ -127,6 +127,13 @@ CROSの設定を以下に変更。これが無いとフロントから来たJSON
 あとはそれをハードコードした質問文の代わりに渡せば仕組み自体は完成。
 →ちゃんと動いた（？）
 
+page.tsxが大きくなってきたからモジュール化してファイルを分ける。
+その一塊（ヘッダーとか）で、区切って必要な情報を親から受け取れるようにデータ型宣言しておく。んで親からデータ渡しつつそいつらを呼ぶだけ。
+この辺は慣れかな。
+
+次、読み込める小説のバリエーションを増やしたいから、SQLを実装する。
+
+
 参考
 DoclerのAir実装について
 https://zenn.dev/ring_belle/articles/go-docker-air-local
@@ -143,3 +150,6 @@ https://recursionist.io/learn/languages/go/function/function
 
 カラーピッカー
 https://colormind.io/bootstrap/
+
+GOにおけるSQLiteの実装
+https://qiita.com/Hirohiro-new/items/48cea49907f1591c718e

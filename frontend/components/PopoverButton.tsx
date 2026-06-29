@@ -1,41 +1,26 @@
-// src/components/PopoverButton.tsx
 import React from 'react';
+import { Button } from '@/components/ui/button';
 
 type PopoverButtonProps = {
-    showButton: boolean;
-    buttonPos: { x: number; y: number };
-    handleExplainClick: () => void;
+  showButton: boolean;
+  buttonPos: { x: number; y: number };
+  handleExplainClick: () => void;
 };
 
 export const PopoverButton = ({
-    showButton,
-    buttonPos,
-    handleExplainClick,
+  showButton,
+  buttonPos,
+  handleExplainClick,
 }: PopoverButtonProps) => {
-    // 表示フラグがfalseの場合は何も描画しない（nullを返す）
-    if (!showButton) return null;
+  if (!showButton) return null;
 
-    return (
-        <button
-            onClick={handleExplainClick}
-            style={{
-                position: 'absolute',
-                left: `${buttonPos.x}px`,
-                top: `${buttonPos.y}px`,
-                transform: 'translateX(-50%)',
-                backgroundColor: '#0070f3',
-                color: 'white',
-                border: 'none',
-                borderRadius: '20px',
-                padding: '8px 16px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                zIndex: 1000,
-                whiteSpace: 'nowrap',
-            }}
-        >
-            AIに解説を依頼
-        </button>
-    );
+  return (
+    <Button
+      onClick={handleExplainClick}
+      className="absolute z-[1000] -translate-x-1/2 whitespace-nowrap rounded-full px-4 py-2 shadow-md"
+      style={{ left: buttonPos.x, top: buttonPos.y }}
+    >
+      AIに解説を依頼
+    </Button>
+  );
 };

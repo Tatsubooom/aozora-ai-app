@@ -51,6 +51,7 @@ backend/tmp/
     # 環境変数
 .env
 .env.local
+.venv/
 
 開発覚書まとめ/
-/backend/青空文庫スクレイピング/
+/backend/青空文庫スクレイピング/.venv/

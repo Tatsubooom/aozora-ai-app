@@ -24,6 +24,7 @@ export const useNovelReader = () => {
   const [isNovelLoaded, setIsNovelLoaded] = useState(false);
   const [novelError, setNovelError] = useState('');
   const [cleanFullText, setCleanFullText] = useState('')
+  const [bookshelfOpend, setBookshelfOpend] = useState(false);
 
   // 解説ボタン及び解説・回答テキスト状態
   const [selectedText, setSelectedText] = useState('');
@@ -75,7 +76,7 @@ export const useNovelReader = () => {
         });
         setIsNovelLoaded(true);
         setNovelError('');
-        setCleanFullText(sanitizeAozoraText(novel.novelText))
+        setCleanFullText(sanitizeAozoraText(data.rawtext))
         //console.log(cleanFullText)
       } else {
         setNovelError('エラー: ' + data.error);
@@ -167,6 +168,7 @@ export const useNovelReader = () => {
     explanation,
     isLoading,
     explainedText,
+    bookshelfOpend,
 
     // Function
     fetchNovel,

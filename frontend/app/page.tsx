@@ -1,15 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { PopoverButton } from '@/components/PopoverButton'
+import { PopoverButton } from '@/components/PopoverButton';
 import { NovelContent } from '@/components/NovelContent';
 import { useNovelReader } from '@/hooks/useNovelReader';
-import { formatAozoraRuby } from '@/utils/aozoraParser';
 
 export default function NovelReader() {
-  //　各種状態取得
   const {
     theme,
     toggleTheme,
@@ -26,64 +24,43 @@ export default function NovelReader() {
     explainedText,
     fetchNovel,
     handleMouseUp,
-    handleExplainClick
+    handleExplainClick,
   } = useNovelReader();
 
-  
   return (
-    //　背景設定
-    <div style={{
-      backgroundColor: 'var(--background)',
-      color: 'var(--foreground)',
-      minHeight: '100vh',
-      padding: '20px',
-      paddingTop: '84px',
-      fontFamily: 'var(--font-sans)',
-      boxSizing: 'border-box',
-      transition: 'background-color 0.3s, color 0.3s'
-    }}>
-      
+    <div className="min-h-screen bg-background pt-[84px] p-5 font-sans text-foreground transition-colors duration-300">
       <Header
-        theme = {theme}
-        toggleTheme = {toggleTheme}
-        isSettingsOpen = {isSettingsOpen}
-        setIsSettingsOpen = {setIsSettingsOpen}
-        showHeader = {showHeader}
-        fetchNovel = {fetchNovel}
+        theme={theme}
+        toggleTheme={toggleTheme}
+        isSettingsOpen={isSettingsOpen}
+        setIsSettingsOpen={setIsSettingsOpen}
+        showHeader={showHeader}
+        fetchNovel={fetchNovel}
       />
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '72% 28%',
-        gap: '20px',
-        position: 'relative',
-        alignItems: 'flex-start',
-      }}>
-        
-        <div style={{ position: 'relative' }}>
-          
+      <div className="relative grid grid-cols-[72%_28%] items-start gap-5">
+        <div className="relative">
           <NovelContent
             handleMouseUp={handleMouseUp}
             isNovelLoaded={isNovelLoaded}
             novelText={novel.novelText}
             novelError={novelError}
           />
-          
+
           <PopoverButton
             showButton={showButton}
             buttonPos={buttonPos}
             handleExplainClick={handleExplainClick}
           />
-
         </div>
-        
-        <Sidebar 
+
+        <Sidebar
           isNovelLoaded={isNovelLoaded}
           isLoading={isLoading}
           explanation={explanation}
           explainedText={explainedText}
           showHeader={showHeader}
-          novel = {novel}
+          novel={novel}
         />
       </div>
     </div>
