@@ -52,6 +52,7 @@ backend/tmp/
 .env
 .env.local
 .venv/
+out/
 
 開発覚書まとめ/
 /backend/青空文庫スクレイピング/.venv/

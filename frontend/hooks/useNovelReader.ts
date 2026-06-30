@@ -62,29 +62,29 @@ export const useNovelReader = () => {
   const showHeader = isAtTop || isHoveringTop;
 
   // 本文取得
-  const fetchNovel = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/novel`);
-      const data = await res.json();
-      if (res.ok) {
-        setNovel({
-          novelText : data.rawtext,
-          title: data.title,
-          author: data.author,
-          year: data.year,
-          aozoraID: data.aozora_id,
-        });
-        setIsNovelLoaded(true);
-        setNovelError('');
-        setCleanFullText(sanitizeAozoraText(data.rawtext))
-        //console.log(cleanFullText)
-      } else {
-        setNovelError('エラー: ' + data.error);
-      }
-    } catch (error) {
-      setNovelError('通信失敗');
+  // 本文取得
+const fetchNovel = async (id: string) => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/novel/${id}`);
+    const data = await res.json();
+    if (res.ok) {
+      setNovel({
+        novelText : data.rawtext,
+        title: data.title,
+        author: data.author,
+        year: data.year,
+        aozoraID: data.aozora_id,
+      });
+      setIsNovelLoaded(true);
+      setNovelError('');
+      setCleanFullText(sanitizeAozoraText(data.rawtext));
+    } else {
+      setNovelError('エラー: ' + data.error);
     }
-  };
+  } catch (error) {
+    setNovelError('通信失敗');
+  }
+};
 
   // 文字選択時の処理
   const handleMouseUp = () => {
