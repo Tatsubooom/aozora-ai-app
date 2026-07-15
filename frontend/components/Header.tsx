@@ -10,7 +10,7 @@ type HeaderProps = {
   isSettingsOpen: boolean;
   setIsSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   showHeader: boolean;
-  fetchNovel: (id: string) => void;
+  onOpenBookshelf: () => void;
 };
 
 export const Header = ({
@@ -19,7 +19,7 @@ export const Header = ({
   isSettingsOpen,
   setIsSettingsOpen,
   showHeader,
-  fetchNovel,
+  onOpenBookshelf,
 }: HeaderProps) => {
   return (
     <header
@@ -46,11 +46,7 @@ export const Header = ({
           </PopoverContent>
         </Popover>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fetchNovel('059898')}   // アロー関数で固定IDを渡す
-        >
+        <Button variant="outline" size="sm" onClick={onOpenBookshelf}>
           小説を読み込む
         </Button>
       </div>

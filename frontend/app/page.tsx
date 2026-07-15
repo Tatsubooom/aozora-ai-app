@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { PopoverButton } from '@/components/PopoverButton';
 import { NovelContent } from '@/components/NovelContent';
 import { useNovelReader } from '@/hooks/useNovelReader';
+import { BookshelfDrawer } from '@/components/BookshelfDrawer';
 
 export default function NovelReader() {
   const {
@@ -25,6 +26,8 @@ export default function NovelReader() {
     fetchNovel,
     handleMouseUp,
     handleExplainClick,
+    bookshelfOpend,
+    setBookshelfOpend,
   } = useNovelReader();
 
   return (
@@ -35,7 +38,13 @@ export default function NovelReader() {
         isSettingsOpen={isSettingsOpen}
         setIsSettingsOpen={setIsSettingsOpen}
         showHeader={showHeader}
-        fetchNovel={fetchNovel}
+        onOpenBookshelf={() => setBookshelfOpend(true)}
+      />
+
+      <BookshelfDrawer
+        isOpen={bookshelfOpend}
+        onClose={() => setBookshelfOpend(false)}
+        onSelect={(id) => fetchNovel(id)}  // 選んだらfetch
       />
 
       <div className="relative grid grid-cols-[72%_28%] items-start gap-5">

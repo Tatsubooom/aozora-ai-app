@@ -62,7 +62,6 @@ export const useNovelReader = () => {
   const showHeader = isAtTop || isHoveringTop;
 
   // 本文取得
-  // 本文取得
 const fetchNovel = async (id: string) => {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/novel/${id}`);
@@ -169,6 +168,7 @@ const fetchNovel = async (id: string) => {
     isLoading,
     explainedText,
     bookshelfOpend,
+    setBookshelfOpend,
 
     // Function
     fetchNovel,

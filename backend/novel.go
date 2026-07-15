@@ -92,7 +92,7 @@ func (s *NovelStore) GetText(ctx context.Context, id, zipURL string) ([]byte, er
 	return text, nil
 }
 
-// zip取得＋展開＋Shift_JIS→UTF-8（HTTP以外の依存がなくテストしやすい）
+// zip取得＋展開＋Shift_JIS→UTF-8
 func downloadAndDecode(zipURL string) ([]byte, error) {
 	resp, err := http.Get(zipURL)
 	if err != nil {

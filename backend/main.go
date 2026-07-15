@@ -96,9 +96,6 @@ func explpost(c *gin.Context, model *genai.GenerativeModel) {
 // ---- CORS設定（環境で切り替え）----
 
 func corsConfig() cors.Config {
-	// 本番は Hosting rewrite 経由＝同一オリジンなので CORS は基本不要だが、
-	// ローカル開発（localhost:3000 → localhost:8080）のために許可を残す。
-	// CORS_ORIGINS が設定されていればそれを使う（カンマ区切り）。
 	origins := []string{"http://localhost:3000"}
 	if env := os.Getenv("CORS_ORIGINS"); env != "" {
 		origins = strings.Split(env, ",")
