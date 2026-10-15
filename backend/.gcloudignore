@@ -1,0 +1,13 @@
+# gcloud run deploy --source でアップロードしないもの
+# （無いと credentials.json や .env までイメージに焼き込まれる）
+.gcloudignore
+.dockerignore
+.git
+.env
+.env.*
+credentials.json
+*.csv
+*.py
+*_test.go
+tmp/
+青空文庫スクレイピング/

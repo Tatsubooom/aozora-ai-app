@@ -22,6 +22,14 @@ type NovelStore struct {
 	bucket *storage.BucketHandle
 }
 
+// 本棚の一覧に出す最小限の情報
+type WorkSummary struct {
+	ID     string `json:"id"`
+	Title  string `json:"title"`
+	Author string `json:"author"`
+	Year   string `json:"year"`
+}
+
 type WorkMeta struct {
 	Title    string `firestore:"title"`
 	Author   string `firestore:"author"`
@@ -118,4 +126,40 @@ func downloadAndDecode(zipURL string) ([]byte, error) {
 		}
 	}
 	return nil, errors.New("zip内に.txtが見つかりません")
+}
+
+// works コレクションを読み順（sort_key）で limit 件取得する。
+// cursor に前ページ最後の作品IDを渡すと、その続きから返す。
+// 戻り値の次カーソルは、続きが無ければ空文字。
+func (s *NovelStore) ListMeta(ctx context.Context, limit int, cursor string) ([]WorkSummary, string, error) {
+	q := s.fs.Collection("works").OrderBy("sort_key", firestore.Asc).OrderBy(firestore.DocumentID, firestore.Asc)
+	if cursor != "" {
+		snap, err := s.fs.Collection("works").Doc(cursor).Get(ctx)
+		if err != nil {
+			return nil, "", err
+		}
+		q = q.StartAfter(snap)
+	}
+
+	// 1件多く取って「続きがあるか」を判定する
+	docs, err := q.Limit(limit + 1).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, "", err
+	}
+
+	next := ""
+	if len(docs) > limit {
+		docs = docs[:limit]
+		next = docs[limit-1].Ref.ID
+	}
+
+	list := make([]WorkSummary, 0, len(docs)) // 0件でも null ではなく [] を返す
+	for _, snap := range docs {
+		var w WorkMeta
+		if err := snap.DataTo(&w); err != nil {
+			continue // 1件壊れていても止まらない
+		}
+		list = append(list, WorkSummary{ID: snap.Ref.ID, Title: w.Title, Author: w.Author, Year: w.Year})
+	}
+	return list, next, nil
 }

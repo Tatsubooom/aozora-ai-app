@@ -5,9 +5,6 @@ import { cn } from '@/lib/utils';
 
 type SidebarProps = {
   isNovelLoaded: boolean;
-  isLoading: boolean;
-  explanation: string;
-  explainedText: string;
   showHeader: boolean;
   novel: {
     title: string;
@@ -15,9 +12,11 @@ type SidebarProps = {
     year: string;
     aozoraID: string;
   };
+  // AI解説カードの中身（ExplanationPanel）
+  children: React.ReactNode;
 };
 
-const NovelDetailsPanel = ({
+export const NovelDetailsPanel = ({
   novelLoaded,
   novel,
 }: {
@@ -58,16 +57,14 @@ const NovelDetailsPanel = ({
 
 export const Sidebar = ({
   isNovelLoaded,
-  isLoading,
-  explanation,
-  explainedText,
   showHeader,
   novel,
+  children,
 }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        'sticky flex flex-col gap-5 transition-[top,height] duration-300 ease-in-out',
+        'sticky hidden flex-col gap-5 md:flex transition-[top,height] duration-300 ease-in-out',
         showHeader ? 'top-[84px] h-[calc(100vh-104px)]' : 'top-5 h-[calc(100vh-40px)]'
       )}
     >
@@ -78,17 +75,7 @@ export const Sidebar = ({
           <CardTitle>AI解説</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto pr-2.5">
-          {isLoading && <p>解説を生成中...</p>}
-          {explanation ? (
-            <div className="rounded-lg border-l-[5px] border-l-cyan-600 bg-cyan-600/10 p-5">
-              <h4 className="mt-0 text-cyan-600">解説：「{explainedText}」</h4>
-              <p className="m-0 whitespace-pre-wrap leading-relaxed">{explanation}</p>
-            </div>
-          ) : (
-            <p className="text-sm leading-relaxed text-gray-500">
-              文章を選択してボタンを押すと、ここに解説が表示されます。
-            </p>
-          )}
+          {children}
         </CardContent>
       </Card>
     </aside>

@@ -1,0 +1,9 @@
+# docker build のコンテキストに含めないもの（秘密情報・ビルドに不要なデータ）
+.git
+.env
+.env.*
+credentials.json
+*.csv
+*.py
+tmp/
+青空文庫スクレイピング/
