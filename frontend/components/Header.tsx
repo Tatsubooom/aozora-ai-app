@@ -4,6 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import type { AccessState } from '@/hooks/useAccess';
+import type { LocalAIState } from '@/hooks/useLocalAI';
 
 type HeaderProps = {
   theme: string;
@@ -13,6 +14,7 @@ type HeaderProps = {
   showHeader: boolean;
   onOpenBookshelf: () => void;
   access: AccessState;
+  localAI: LocalAIState;
 };
 
 export const Header = ({
@@ -23,6 +25,7 @@ export const Header = ({
   showHeader,
   onOpenBookshelf,
   access,
+  localAI,
 }: HeaderProps) => {
   return (
     <header
@@ -45,6 +48,12 @@ export const Header = ({
                 <span className="text-sm">表示モード</span>
                 <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
               </div>
+              {localAI.status === 'available' && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">端末内AIを使う</span>
+                  <Switch checked={localAI.enabled} onCheckedChange={localAI.setEnabled} />
+                </div>
+              )}
               {access.hasSession && (
                 <div className="flex flex-col gap-2 border-t pt-3">
                   <span className="text-xs text-muted-foreground">アクセスコード登録済み</span>
