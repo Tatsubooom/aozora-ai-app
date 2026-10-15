@@ -8,26 +8,16 @@ import { NovelContent } from '@/components/NovelContent';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { useNovelReader } from '@/hooks/useNovelReader';
 import { useAccess } from '@/hooks/useAccess';
+import { useLocalAI } from '@/hooks/useLocalAI';
+import { useExplainer } from '@/hooks/useExplainer';
 import { BookshelfDrawer } from '@/components/BookshelfDrawer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 export default function NovelReader() {
   const access = useAccess();
-
-  // AI解説API呼び出し（アクセスコードのセッションが必要）
-  const explain = async (text: string, context: string) => {
-    const res = await access.authFetch('/api/explanation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, context }),
-    });
-    const data = await res.json();
-    if (typeof data.remaining === 'number') access.setRemaining(data.remaining);
-    if (res.status === 429) access.setRemaining(0);
-    if (!res.ok) throw new Error(data.error ?? '解説の取得に失敗しました');
-    return data.message as string;
-  };
+  const localAI = useLocalAI();
+  const explainer = useExplainer(access, localAI);
   const {
     theme,
     toggleTheme,
@@ -51,18 +41,20 @@ export default function NovelReader() {
     isExplanationSheetOpen,
     setIsExplanationSheetOpen,
     contentRef,
-  } = useNovelReader({ explain });
+  } = useNovelReader({ explain: explainer.explain });
 
-  // セッションが無ければAPIを呼ばず、アクセスコード入力を案内する
+  // 解説手段が無ければAPIを呼ばず、アクセスコード入力 / 端末内AIの準備を案内する
   const onExplain = () => {
-    if (access.hasSession) return handleExplainClick();
+    if (explainer.canExplain) return handleExplainClick();
     if (isMobile) setIsExplanationSheetOpen(true);
   };
-  const explainLabel = access.hasSession ? 'AIに解説を依頼' : 'アクセスコードが必要です';
+  const explainLabel = explainer.canExplain ? 'AIに解説を依頼' : 'アクセスコードが必要です';
 
   const explanationPanel = (
     <ExplanationPanel
       access={access}
+      localAI={localAI}
+      explainer={explainer}
       isLoading={isLoading}
       explanation={explanation}
       explainedText={explainedText}
@@ -79,6 +71,7 @@ export default function NovelReader() {
         showHeader={showHeader}
         onOpenBookshelf={() => setBookshelfOpend(true)}
         access={access}
+        localAI={localAI}
       />
 
       <BookshelfDrawer
