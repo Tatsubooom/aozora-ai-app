@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gin-contrib/cors"
@@ -64,6 +65,33 @@ func novelHandler(store *NovelStore) gin.HandlerFunc {
 			Year:     meta.Year,
 			AozoraID: id,
 		})
+	}
+}
+
+// GET /api/novels?limit=20&cursor=<前ページ最後のID>
+// 読み順で作品一覧を返す。limit 省略時は環境変数 NOVELS_PAGE_SIZE（既定20）
+func novelListHandler(store *NovelStore, defaultLimit int) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		limit := defaultLimit
+		if v := c.Query("limit"); v != "" {
+			n, err := strconv.Atoi(v)
+			if err != nil || n < 1 || n > 100 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "limit は 1〜100 で指定してください"})
+				return
+			}
+			limit = n
+		}
+
+		list, next, err := store.ListMeta(c.Request.Context(), limit, c.Query("cursor"))
+		if status.Code(err) == codes.NotFound {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "cursor が不正です"})
+			return
+		}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "一覧の取得に失敗しました"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"items": list, "next_cursor": next})
 	}
 }
 
@@ -146,6 +174,7 @@ func main() {
 
 	// ルーティング
 	r.GET("/api/novel/:id", novelHandler(store))
+	r.GET("/api/novels", novelListHandler(store, envInt("NOVELS_PAGE_SIZE", 20)))
 	r.POST("/api/explanation", func(c *gin.Context) {
 		explpost(c, model)
 	})
@@ -158,4 +187,18 @@ func main() {
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("サーバーの起動に失敗しました: %v", err)
 	}
+}
+
+// ---- 環境変数ヘルパー ----
+
+func envInt(key string, def int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n < 1 {
+		log.Fatalf("環境変数 %s は正の整数で指定してください: %q", key, v)
+	}
+	return n
 }
