@@ -38,21 +38,25 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-    # Node.js
+# Node.js
 frontend/node_modules/
 frontend/.next/
+frontend/.firebase/
 
-    # Go
+# Go
 backend/tmp/
-    
-    # OS
-.DS_Store
-    
-    # 環境変数
+
+# 環境変数・認証情報
 .env
 .env.local
+backend/credentials.json
+
+# Python
 .venv/
+/backend/青空文庫スクレイピング/.venv/
+
 out/
 
+# 開発メモ（ローカルのみ）
 開発覚書まとめ/
-/backend/青空文庫スクレイピング/.venv/
+開発覚書まとめ.zip
