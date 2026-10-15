@@ -174,8 +174,8 @@ type sessionRequest struct {
 
 // POST /api/session  アクセスコードを確認してセッショントークンを発行する
 func (g *Gatekeeper) CreateSessionHandler(c *gin.Context) {
-	ip := clientIP(c)
-	if !g.limiter.allow(ip) {
+	key := clientKey(c)
+	if !g.limiter.allow(key) {
 		c.JSON(http.StatusTooManyRequests, gin.H{"error": "試行回数が多すぎます。しばらく待ってから再度お試しください"})
 		return
 	}
@@ -189,7 +189,7 @@ func (g *Gatekeeper) CreateSessionHandler(c *gin.Context) {
 	id := hashCode(req.Code)
 	ac, err := g.lookup(c.Request.Context(), id)
 	if isUserError(err) {
-		g.limiter.fail(ip)
+		g.limiter.fail(key)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -231,24 +231,28 @@ func (g *Gatekeeper) SessionInfoHandler(c *gin.Context) {
 }
 
 // ---- 総当たり対策 ----
-// コードは十分長いので総当たりは現実的でないが、念のため失敗回数で制限する。
+// コードは約79ビットあるので総当たりは現実的でない。これは保険としての失敗回数制限。
 // Cloud Run は max-instances=1 前提なのでメモリ上の集計で足りる。
-// IP単位の制限は X-Forwarded-For の偽装で回避されうるので、全体の上限も併用する。
+//
+// 他人を巻き込まないための設計:
+//   - 全体での上限は設けない（攻撃者がわざと失敗するだけで全員が締め出されるため）
+//   - キーは X-Forwarded-For の先頭ではなくヘッダー全体を使う。先頭は送信側で偽装できるが、
+//     Googleのプロキシが実際の接続元IPを末尾に追記するので、他人と同じキーは作れない
+//   - キーは偽装で無限に作れるので、件数に上限を設けてメモリを守る
 
 const (
-	failWindow    = 15 * time.Minute
-	failPerIP     = 10
-	failPerGlobal = 100
+	failWindow  = 15 * time.Minute
+	failPerKey  = 10
+	maxFailKeys = 10000
 )
 
 type failLimiter struct {
-	mu     sync.Mutex
-	byIP   map[string][]time.Time
-	global []time.Time
+	mu    sync.Mutex
+	byKey map[string][]time.Time
 }
 
 func newFailLimiter() *failLimiter {
-	return &failLimiter{byIP: map[string][]time.Time{}}
+	return &failLimiter{byKey: map[string][]time.Time{}}
 }
 
 func prune(ts []time.Time, now time.Time) []time.Time {
@@ -259,31 +263,44 @@ func prune(ts []time.Time, now time.Time) []time.Time {
 	return ts[i:]
 }
 
-func (l *failLimiter) allow(ip string) bool {
+func (l *failLimiter) allow(key string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	now := time.Now()
-	l.global = prune(l.global, now)
-	l.byIP[ip] = prune(l.byIP[ip], now)
-	if len(l.byIP[ip]) == 0 {
-		delete(l.byIP, ip)
+	ts := prune(l.byKey[key], time.Now())
+	if len(ts) == 0 {
+		delete(l.byKey, key)
+		return true
 	}
-	return len(l.global) < failPerGlobal && len(l.byIP[ip]) < failPerIP
+	l.byKey[key] = ts
+	return len(ts) < failPerKey
 }
 
-func (l *failLimiter) fail(ip string) {
+func (l *failLimiter) fail(key string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	now := time.Now()
-	l.global = append(l.global, now)
-	l.byIP[ip] = append(l.byIP[ip], now)
+	if len(l.byKey) >= maxFailKeys {
+		// 期限切れを掃除しても溢れるなら、集計をリセットする（制限が一時的に緩むだけで正規利用者は困らない）
+		for k, ts := range l.byKey {
+			if len(prune(ts, now)) == 0 {
+				delete(l.byKey, k)
+			}
+		}
+		if len(l.byKey) >= maxFailKeys {
+			l.byKey = map[string][]time.Time{}
+		}
+	}
+	l.byKey[key] = append(l.byKey[key], now)
 }
 
-// Firebase Hosting / Cloud Run 経由だと RemoteAddr はGoogleのプロキシになるので、
-// X-Forwarded-For の先頭（クライアントIP）を使う
-func clientIP(c *gin.Context) string {
+// 失敗回数を数えるキー。Firebase Hosting / Cloud Run 経由だと RemoteAddr はGoogleのプロキシなので、
+// X-Forwarded-For 全体（末尾に実際の接続元IPが追記される）を使う
+func clientKey(c *gin.Context) string {
 	if xff := c.GetHeader("X-Forwarded-For"); xff != "" {
-		return strings.TrimSpace(strings.Split(xff, ",")[0])
+		if len(xff) > 256 {
+			xff = xff[len(xff)-256:] // 偽装で長くされても、実IPが入る末尾側を残す
+		}
+		return xff
 	}
 	return c.ClientIP()
 }
