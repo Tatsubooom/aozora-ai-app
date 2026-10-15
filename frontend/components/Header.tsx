@@ -24,13 +24,13 @@ export const Header = ({
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-[1001] flex h-16 items-center justify-between border-b-2 border-border/30 bg-background px-5 transition-[transform,opacity] duration-300 ease-in-out',
+        'fixed top-0 left-0 right-0 z-[1001] flex h-16 items-center justify-between gap-2 border-b-2 border-border/30 bg-background px-3 sm:px-5 transition-[transform,opacity] duration-300 ease-in-out',
         showHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
       )}
     >
-      <h3 className="m-0 text-lg">青空文庫 AI解説リーダー</h3>
+      <h3 className="m-0 truncate text-base sm:text-lg">青空文庫 AI解説リーダー</h3>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm">設定</Button>
@@ -47,7 +47,7 @@ export const Header = ({
         </Popover>
 
         <Button variant="outline" size="sm" onClick={onOpenBookshelf}>
-          小説を読み込む
+          本棚
         </Button>
       </div>
     </header>
