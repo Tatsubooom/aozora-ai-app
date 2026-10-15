@@ -4,6 +4,7 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: dockerfile.dev
       target: dev
     ports:
       - "8080:8080"
@@ -13,12 +14,13 @@ services:
       - ./backend:/app
     environment:
       - APP_ENV=development
-      # 必要に応じてFirebaseやGeminiの環境変数を定義（ローカルでは.env経由が安全）
-      - FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 
+      # GeminiやGCPの環境変数は backend/.env に書く
+      # ※ FIREBASE_AUTH_EMULATOR_HOST を設定すると本物のIDトークンを検証できなくなるので、エミュレータを使う時だけ足すこと
 
   frontend:
     build:
       context: ./frontend
+      dockerfile: dockerfile
       target: dev
     ports:
       - "3000:3000"
