@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import type { AccessState } from '@/hooks/useAccess';
 
 type HeaderProps = {
   theme: string;
@@ -11,6 +12,7 @@ type HeaderProps = {
   setIsSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   showHeader: boolean;
   onOpenBookshelf: () => void;
+  access: AccessState;
 };
 
 export const Header = ({
@@ -20,6 +22,7 @@ export const Header = ({
   setIsSettingsOpen,
   showHeader,
   onOpenBookshelf,
+  access,
 }: HeaderProps) => {
   return (
     <header
@@ -42,6 +45,12 @@ export const Header = ({
                 <span className="text-sm">表示モード</span>
                 <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
               </div>
+              {access.hasSession && (
+                <div className="flex flex-col gap-2 border-t pt-3">
+                  <span className="text-xs text-muted-foreground">アクセスコード登録済み</span>
+                  <Button variant="outline" size="sm" onClick={access.logout}>コードの登録を解除</Button>
+                </div>
+              )}
             </div>
           </PopoverContent>
         </Popover>
